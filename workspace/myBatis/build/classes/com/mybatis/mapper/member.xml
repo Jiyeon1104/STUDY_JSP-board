@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http//mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="Member">
+	<!-- 회원가입 -->
+	<insert id="join" parameterType="memberVO">
+		insert into tbl_member (memberId, memberName, memberPw, gender, address, addressDetail) 
+		values(#{memberId}, #{memberName}, #{memberPw}, #{gender}, #{address}, #{addressDetail})
+	</insert>
+	
+	<!-- 중복검사 -->
+	<select id="checkId" parameterType="string" resultType="_int">
+		select count(memberId) from tbl_member 
+		where memberId = #{memberId}
+	</select>
+	
+	<!-- 로그인 -->
+	<select id="login" parameterType="map" resultType="_int">
+		select memberNum from tbl_member 
+		where memberId = #{memberId} and memberPw = #{memberPw}
+	</select>
+	
+	<select id="select" parameterType="_int" resultType="memberVO">
+		select memberNum, memberId, memberName, gender, address, addressDetail 
+		from tbl_member where memberNum = #{memberNum}
+	</select>
+	
+	<!-- 만약 결과 행이 여러 개라면, 하나의 행에 대한 타입만 resultType에 작성한다. -->
+	<select id="selectAll" resultType="memberVO">
+		select memberNum, memberId, memberName, gender, address, addressDetail 
+		from tbl_member
+	</select>
+	
+</mapper>

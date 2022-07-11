@@ -1,0 +1,4 @@
+choose : java의 else if와 똑같음
+when : 조건식
+변수를 선언할 때는 set, 가져올 때는 get
+출력할 때는 out

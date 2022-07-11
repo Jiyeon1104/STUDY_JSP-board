@@ -1,0 +1,145 @@
+EL문과 JSTL: 페이지 가독성 상승
+	자바 구문을 라이브러리 형태로 만들어 놓고 필요할 때 마다 태그로 꺼내쓰는 기술이다.
+	JSP 페이지 내에서 자바코드와 HTML코드가 섞여 있으면 가독성이 떨어지고 복잡해진다.
+	EL문과 JSTL문을 사용하면 HTML 태그로만 구성된 일관된 소스코드를 볼 수 있다는 장점이 있다.
+
+- EL(Expression Language)
+	값을 간결하고 간편하게 출력할 수 있도록 해주는 기술
+
+	자바			EL
+	<%=name%>		${name}
+	<%=member.getName()%>	${member.getName()}
+
+	값을 찾을 때에는 작은 Scope에서 큰 Scope로 찾는다.
+	page > request > session > application
+
+	원하는 Scope의 변수를 찾을 때 아래와 같이 사용한다.
+	${param.name} : 전달받은 데이터 중 name을 찾는다.
+	${requestScope.name} : request에서만 name을 찾는다.
+	${sessionScope.name} : session에서만 name을 찾는다.
+
+EL 연산자
+	%, mod
+	&&, and
+	||, or
+	>, lt
+	<, gt
+	>=, le
+	<=, ge
+	==, eq
+	!=, ne
+	empty : 값이 비어있으면 true, 값이 있으면 false
+	!, not
+
+JSTL(Jsp Standard Tag Library)
+	연산자이나 조건문, 반복문 등을 편하게 처리할 수 있으며, JSP페이지 내에서
+	자바코드를 사용하지 않고 로직을 구현할 수 있도록 효율적인 방법을 제공한다.
+
+	자바				JSTL
+	for(자료형 변수명 : 반복자){}	<c:forEach var="" items="${반복자}"></c:forEach>
+	for(초기식; 조건식; 증감식){}	<c:forEach var="" begin="" end=""></c:forEach>
+
+core 태그의 종류 <c:></c:>
+	<c:set> : 변수에 값 대입
+	<c:out> : 값 출력
+	<c:if> : 조건문(if문)
+	<c:choose> : 조건문(switch문 시작을 알림)
+	<c:when> : switch문에서 case의 역할
+	<c:otherwise> : switch문에서 default의 역할
+	<c:forEach> : 반복문(for문)
+
+JSTL 라이브러리 다운로드
+	http://archive.apache.org/dist/jakarta/taglibs/standard/binaries/
+ 	> jakarta-taglibs-standard-1.1.2 다운로드
+
+출력 시 <c:out>, ${}의 차이
+	EL문만 사용하게 되면, HTML이나 스크립트가 실행될 수 있기 때문에
+	보안상 c:out의 escapeXml옵션을 사용하기 위해서 c:out을 사용한다.
+	escapeXml은 default가 true이며, 값에 html이나 스크립트가 작성되어도
+	실행 가능한 명령어가 아닌 문자열 값으로 인식하게 된다.
+	엄격한 태그 규칙을 위해 c:out이 사용되기도 하며, 모든 표현은
+	태그 안에 작성하는 것을 원칙으로 한다.
+---------------------------------------------------------------------------------------
+[jsp 방식]
+	a.jsp --> b.jsp --> c.jsp
+
+	각 페이지마다 필요 시 자바 코드가 작성되며, DB와 연결하는 코드도 jsp파일 안에서
+	모두 작성된다. 분리되어 있지 않기 때문에 규모가 작은 프로젝트에 어울리는 방식이며,
+	코드가 확장될 수록 가독성이 떨어지고 분업과 유지보수가 좋지 않다.
+
+MVC
+[model1 방식]
+	a.jsp --> b.jsp --> c.jsp
+		    ↓
+		 DAO.java
+
+	b.jsp에서 dao를 호출함으로써 자바코드가 섞이게 된다. 선언은 java페이지에
+	구현이 되어 있기 때문에 jsp 내의 java코드 양이 줄어들어지만 결국 사용은 jsp페이지에서
+	하기 때문에 Controller와 View가 섞이게 된다.
+	페이지가 확장될 수록 유지보수가 상대적으로 좋지 않지만 설계는 쉽다.
+
+[model2 방식]
+	a.jsp	-->	web.xml	-->	Front-Controller.java	------------>	c.jsp
+						↓
+					Controller.java
+					    ↓
+					DAO.java
+					 ↓
+					DB
+
+	a.jsp에서 다음 페이지를 이동하기 전 필요한 비지니스 로직을 완벽하게 분리하여 관리한다.
+	사용자가 정의한 확장자(.me, .bo, ...)를 페이지 이동 주소(URL)에 작성하게 되면
+	web.xml에 가서 경로를 찾는다. web.xml에 파일 경로를 하나씩 모두 만들게 되면
+	코드가 길어지기 때문에 *.me와 같이 그룹화시킨 확장자로 요청을 하나의 경로로 보내주도록
+	설정해 놓는다.
+	이 경로를 알맞는 Front-Controller.java 경로로 설정해 놓는다.
+	Front-Controller에서는 들어온 요청에서 .me앞의 요청 명으로 어떤 로직을 수행할 지를
+	판단하도록 분기처리를 한다.
+	비지니스 로직을 Front-Controller에서 작업하게 되면 마찬가지로 코드가 길어지고
+	유지보수 및 재사용이 어렵기 때문에 요청별 Controller를 만들어서 req와 resp를 받을
+	메소드를 선언하여 구현한다. 따라서 Controller안에 선언된 메소드는 모든 Controller에
+	구현해야 하기 때문에 인터페이스를 선언하여 추상메소드 형태로 선언해 놓고
+	각 Controller에 지정하여 구현하도록 한다.
+	메소드 내부에서의 DB연산 작업들은 모두 DAO로 분리하여 사용한다.
+	내부 작업이 모두 완료되면 페이지를 이동할 것인지, 어떤 방식으로 할 것인지, 그리고 어디로
+	이동할 것인지를 결정해서 리턴해야 한다. 이에 관련된 필드를 클래스로 만들어 놓은 후
+	Controller안에 선언한 메소드의 리턴타입으로 지정하여 Front-Controller에 리턴해준다.
+	Front-Controller에서는 해당 Controller 메소드의 리턴 값에 담긴 결과에 맞게 처리한 후
+	View로 이동하게 된다.
+
+	- redirect(request객체 초기화)
+		클라이언트가 요청했을 때 이전의 값이 남아있지 않도록 하기 위해 사용한다.
+		회원가입, 글 작성, 결제 등
+
+	- forward(request객체 유지)
+		클라이언트가 request객체를 통해 응답페이지로 값을 전달해야 할 경우 혹은
+		단순 조회를 요청할 경우 사용된다.
+		목록, 검색 등
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
